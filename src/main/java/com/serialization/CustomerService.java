@@ -1,26 +1,35 @@
 package com.serialization;
 
+import org.codehaus.jackson.map.ObjectMapper;
+
 import java.io.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class CustomerService {
-
 
 
     List<Customer> customers = new ArrayList<>();
     List<Product> products = new ArrayList<>();
     List<Order> orders = new ArrayList<>();
 
+    ObjectMapper objectMapper = new ObjectMapper();
+    File jsonC = new File("customer.json");
+    File jsonP = new File("product.json");
+    File jsonO = new File("order.json");
+
 
     public CustomerService()  {
     }
 
-    public Customer addCustomer(Customer customer) throws IOException {
+    public Customer addCustomer(Customer customer) throws IOException, ClassNotFoundException {
 
         customer.setCustomerId(LocalDateTime.now().toEpochSecond(java.time.ZoneOffset.UTC));
         customers.add(customer);
+
+        objectMapper.writeValue(jsonC, customers);
 
         FileOutputStream fos = new FileOutputStream("customer.txt");
 
@@ -29,6 +38,7 @@ public class CustomerService {
         oos.writeObject(customers);
 
         return customer;
+
     }
 
     public Customer getCustomer(long id) throws IOException, ClassNotFoundException {
@@ -38,6 +48,9 @@ public class CustomerService {
         ObjectInputStream ois = new ObjectInputStream(fis);
 
         List<Customer> customersOP = (List<Customer>)ois.readObject();
+//
+//        Customer[] customerList = objectMapper.readValue(jsonC, Customer[].class);
+//        List<Customer> customerArray = Arrays.asList(customerList);
 
         for (Customer customer : customersOP) {
             if (customer.getCustomerId()==id)
@@ -48,56 +61,88 @@ public class CustomerService {
 
     public Product addproduct(Product product) throws IOException, ClassNotFoundException {
 
-//        if (getCustomer(product.getCustomerId()) instanceof Customer){
-            product.setProductId(LocalDateTime.now().toEpochSecond(java.time.ZoneOffset.UTC));
+        product.setProductId(LocalDateTime.now().toEpochSecond(java.time.ZoneOffset.UTC));
 
-        FileInputStream fis = new FileInputStream("product.txt");
+        products.add(product);
 
-        ObjectInputStream ois = new ObjectInputStream(fis);
+        objectMapper.writeValue(jsonP, products);
 
-        try {
-            List<Product> products = (List<Product>)ois.readObject();
-            products.add(product);
-        }catch (Exception e){
-            products.add(product);
-        }
+        convertJsonToByteStream();
 
-            FileOutputStream fos = new FileOutputStream("product.txt");
+        return product;
 
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
+    }
 
-            oos.writeObject(products);
+    void convertJsonToByteStream() throws IOException {
 
-            return product;
-//        }
-//        return null;
+        FileOutputStream fos = new FileOutputStream("product.txt");
+
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+
+        oos.writeObject(products);
     }
 
 
-    public Product getproduct(long id) throws IOException, ClassNotFoundException{
+    public Product getproduct(long id) throws IOException, ClassNotFoundException {
 
         FileInputStream fis = new FileInputStream("product.txt");
 
         ObjectInputStream ois = new ObjectInputStream(fis);
 
-        List<Product> productsOP = (List<Product>)ois.readObject();
+        List<Product> productsOP = (List<Product>) ois.readObject();
+
+//        Product[] productsList = objectMapper.readValue(jsonP, Product[].class);
+//        List<Product> productArray = Arrays.asList(productsList);
 
         for (Product product : productsOP) {
-            if (product.getProductId()==id)
+            if (product.getProductId() == id)
                 return product;
         }
         return null;
     }
 
-//     List<Customer> readToFile() throws IOException, ClassNotFoundException {
-//        FileInputStream fis = new FileInputStream("file1.txt");
-//
-//        ObjectInputStream ois = new ObjectInputStream(fis);
-//
-//        return (List<Customer>)ois.readObject();
-//    }
+    public String order(long cusId, long proId, Order order) throws IOException, ClassNotFoundException {
 
-//    writetofile() {
-//
-//    }
+        if (getCustomer(cusId)==null){
+            return "invalid customer Id!";
+        }
+        if (getproduct(proId)==null){
+            return "invalid product Id!";
+        }
+
+        order.setOrderId(LocalDateTime.now().toEpochSecond(java.time.ZoneOffset.UTC));
+
+        order.setCustomerId(cusId);
+        order.setProductId(proId);
+        orders.add(order);
+
+        objectMapper.writeValue(jsonO, orders);
+
+        FileOutputStream fos = new FileOutputStream("order.txt");
+
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+
+        oos.writeObject(orders);
+
+        return "Order done by id "+order.getOrderId();
+
+    }
+
+    public Order getOrder(long id) throws IOException, ClassNotFoundException {
+
+        FileInputStream fis = new FileInputStream("order.txt");
+
+        ObjectInputStream ois = new ObjectInputStream(fis);
+
+        List<Order> ordersOP = (List<Order>) ois.readObject();
+
+//        Order[] orderList = objectMapper.readValue(jsonO, Order[].class);
+//        List<Order> orderArray = Arrays.asList(orderList);
+
+        for (Order order : ordersOP) {
+            if (order.getOrderId() == id)
+                return order;
+        }
+        return null;
+    }
 }

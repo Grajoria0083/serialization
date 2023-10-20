@@ -1,6 +1,12 @@
 package com.serialization;
 
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonProperty;
+
 import java.io.Serializable;
+import java.time.LocalDate;
+import java.util.Date;
 
 public class Customer implements Serializable {
 
@@ -11,20 +17,21 @@ public class Customer implements Serializable {
 
     private String phoneNo;
 
+    private transient Date localDate;
+
     private String address;
 
 
-    public Customer() {
 
-    }
-
-
-    public Customer(String name, String email, String phoneNo, String address) {
+    @JsonCreator
+    public Customer(@JsonProperty("name")String name, @JsonProperty("email") String email, @JsonProperty("phoneNo")String phoneNo, @JsonProperty("localDate") Date localDate, @JsonProperty("address")String address) {
         this.name = name;
         this.email = email;
         this.phoneNo = phoneNo;
+        this.localDate = localDate;
         this.address = address;
     }
+
 
     public String getName() {
         return this.name;
@@ -66,13 +73,23 @@ public class Customer implements Serializable {
         this.customerId = customerId;
     }
 
+    public Date getLocalDate() {
+        return localDate;
+    }
+
+    public void setLocalDate(Date localDate) {
+        this.localDate = localDate;
+    }
+
 
     @Override
     public String toString() {
         return "Customer{" +
                 "customerId=" + customerId +
                 ", name='" + name + '\'' +
+                ", email='" + email + '\'' +
                 ", phoneNo='" + phoneNo + '\'' +
+                ", localDate=" + localDate +
                 ", address='" + address + '\'' +
                 '}';
     }
